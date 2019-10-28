@@ -9,6 +9,7 @@ func TestNewExcelReaderBuilder(t *testing.T) {
     erb := NewExcelReaderBuilder().
         SetCacheSize(1).
         SetChanSize(40).
+        SetProcessId("id").
         AddPageRange(0, 0, 0).
         AddPageRange(1, 0, 0).
         AddPageRange(2, 0, 0).
@@ -25,7 +26,7 @@ func TestNewExcelReaderBuilder(t *testing.T) {
 
 }
 
-func processFunc(pageIndex int, rowIndex int,data []string) error{
+func processFunc(pageIndex int, rowIndex int,data []string, id string) error{
     //fmt.Printf("    %d page %d page data %s\n", pageIndex, rowIndex, strings.Join(data, ","))
     time.Sleep(2*time.Millisecond)
     return nil

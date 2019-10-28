@@ -9,6 +9,7 @@ type ExcelReaderBuilder struct {
     cacheSize      int
     chanSize       int
     filePath       string
+    processId string
     pageStartIndex map[int]ExcelOffset
 
 }
@@ -27,6 +28,13 @@ func (erb *ExcelReaderBuilder) AddPageRange(page, topOffset, leftOffset int)(eb*
         erb.pageStartIndex[page] = ExcelOffset{TopOffset:topOffset, LeftOffset:leftOffset};
 
     }
+    return
+}
+
+
+func (erb *ExcelReaderBuilder) SetProcessId(id string)(eb* ExcelReaderBuilder){
+    erb.processId = id
+    eb = erb
     return
 }
 
@@ -67,7 +75,7 @@ func (erb *ExcelReaderBuilder)build()(eb *ExcelReader, err error){
         return
     }
 
-    eb, err = newExcelReader(erb.pageStartIndex,erb.chanSize,erb.cacheSize, erb.filePath)
+    eb, err = newExcelReader(erb.pageStartIndex,erb.chanSize,erb.cacheSize, erb.filePath, erb.processId)
     return ;
 }
 

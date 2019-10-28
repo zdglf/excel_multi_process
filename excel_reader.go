@@ -14,6 +14,7 @@ type ExcelReader struct {
     chainBuffer chan *ExcelStatistics
     //控制同时运行携程数量
     chainCtrl chan int
+    processId string
 
     totalChainSize int
     chainSize int
@@ -25,11 +26,12 @@ type ExcelReader struct {
 
 }
 
-func newExcelReader(pageStartIndex map[int]ExcelOffset, chanSize int, cacheSize int, filePath string)(er *ExcelReader, err error){
+func newExcelReader(pageStartIndex map[int]ExcelOffset, chanSize int, cacheSize int, filePath string, id string)(er *ExcelReader, err error){
     er = new(ExcelReader)
     er.pageStartIndex = pageStartIndex
     er.chainBuffer = make(chan *ExcelStatistics, chanSize)
     er.chainCtrl = make(chan int ,chanSize)
+    er.processId = id
     er.chainSize = chanSize
     er.cacheSize = cacheSize
     er.filePath = filePath
@@ -41,7 +43,9 @@ func newExcelReader(pageStartIndex map[int]ExcelOffset, chanSize int, cacheSize 
 
 }
 
-func (er *ExcelReader)Process(task func(pageIndex int, rowIndex int,data []string)error)(totalCount, dealCount int){
+
+
+func (er *ExcelReader)Process(task func(pageIndex int, rowIndex int,data []string, processId string)error)(totalCount, dealCount int){
 
     er.lock.Lock()
     defer er.lock.Unlock()
@@ -86,7 +90,7 @@ func (er *ExcelReader)Process(task func(pageIndex int, rowIndex int,data []strin
 }
 
 
-func (er *ExcelReader)innerProcess(pageIndex,startIndex,endIndex int, rows []*xlsx.Row, task func(pageIndex int, rowIndex int,data []string)error){
+func (er *ExcelReader)innerProcess(pageIndex,startIndex,endIndex int, rows []*xlsx.Row, task func(pageIndex int, rowIndex int,data []string, processId string)error){
     statistics := ExcelStatistics{SuccessCount:0,TotalCount:0}
     defer func(){
         er.chainBuffer <- (&statistics)
@@ -102,7 +106,7 @@ func (er *ExcelReader)innerProcess(pageIndex,startIndex,endIndex int, rows []*xl
             dataBuffer = append(dataBuffer, rows[i].Cells[j].Value)
         }
 
-        if err :=task(pageIndex, i, dataBuffer);err==nil{
+        if err :=task(pageIndex, i, dataBuffer,er.processId);err==nil{
             statistics.SuccessCount+=1
         }
     }
