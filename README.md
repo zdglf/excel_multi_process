@@ -1,12 +1,43 @@
 ## Excel 多协程处理
 
+> go get github.com/zdglf/excel_multi_process
+
+### Example
+
+```
+    import "github.com/zdglf/excel_multi_process"
+    
+    erb := excel_multi_process.NewExcelReaderBuilder().
+		SetCacheSize(1).
+		SetChanSize(40).
+		SetProcessId("id"). //id 可不设置
+		AddPageRange(0, 0, 0).
+		AddPageRange(1, 0, 0).
+		AddPageRange(2, 0, 0).
+		SetFilePath("test_data/test.xlsx")
+	if er, err := erb.Build();err!=nil{
+		fmt.Println(err.Error())
+	}else{
+		total, success := er.Process(processFunc)
+
+		fmt.Printf("total %d success %d\n", total, success)
+	}
+
+}
+
+func processFunc(pageIndex int, rowIndex int,data []string, processId string) error{
+
+}
+
+```
+
 ### 设置同时运行协程的数量
 
 > ExcelReaderBuilder.SetChanSize
 
 ```
 erb := NewExcelReaderBuilder().
-        SetChanSize(40).
+        SetChanSize(40)
 ```
 
 ### 设置一个协程同时处理的Excel行数 
@@ -26,6 +57,18 @@ erb := NewExcelReaderBuilder().
 ```
 erb := NewExcelReaderBuilder().
         SetFilePath("test_data/test.xlsx")
+
+```
+
+### 设置处理Id
+
+> ExcelReaderBuilder.SetProcessId
+
+
+```
+//设置id可用于记录同一批导入数据
+erb := NewExcelReaderBuilder().
+        SetProcessId("id")
 
 ```
 
@@ -63,7 +106,7 @@ if excelReader, err := erb.build();err!=nil{
 //rowIndex 处理的行数索引 一般从0开始。可以设置从头开始忽略多少行
 //data 处理的数据。如列数offset从1开始，data[0] 对应列数 excel column[1]。
 //不定长
-func processFunc(pageIndex int, rowIndex int,data []string) error{
+func processFunc(pageIndex int, rowIndex int,data []string, processId string) error{
     return nil
 }
 
