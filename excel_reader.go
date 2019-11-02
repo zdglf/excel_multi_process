@@ -6,8 +6,6 @@ import (
     "fmt"
 )
 
-const CONTROL_FLAG = 0
-
 type ExcelReader struct {
 	//Excel Offset 读取
 	pageStartIndex map[int]excelOffset
@@ -66,11 +64,13 @@ func (er *ExcelReader) Process(task func(pageIndex int, rowIndex int, data []str
 			loop:
 				for {
 					if len(er.chanCtrl) < er.chanSize {
-						er.chanCtrl <- CONTROL_FLAG
+                        //任意数字都可以，并不会处理这个数字。
+						er.chanCtrl <- 0
 						er.totalChainSize += 1
 						go er.innerProcess(k, i, endIndex, sheet.Rows, task)
 						break loop
 					} else {
+                        //携程已满，直接输出
 						<-er.chanCtrl
 						s := <-er.chanBuffer
 						er.totalChainSize -= 1
