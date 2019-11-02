@@ -17,7 +17,6 @@ type ExcelReader struct {
 
 	totalChainSize int
 	chanSize       int
-	chainSizeLeft  int
 	cacheSize      int
 	lock           sync.Mutex
 	filePath       string
