@@ -72,6 +72,6 @@ func (erb *ExcelReaderBuilder) Build() (eb *ExcelReader, err error) {
 		return
 	}
 
-	eb, err= newExcelReader(erb.pageStartIndex, erb.chanSize, erb.cacheSize, erb.filePath, erb.processId)
+	eb, err = newExcelReader(erb.pageStartIndex, erb.chanSize, erb.cacheSize, erb.filePath, erb.processId)
 	return
 }

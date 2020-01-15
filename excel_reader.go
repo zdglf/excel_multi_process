@@ -1,9 +1,9 @@
 package excel_multi_process
 
 import (
+	"fmt"
 	"github.com/tealeg/xlsx"
 	"sync"
-    "fmt"
 )
 
 type ExcelReader struct {
@@ -20,9 +20,9 @@ type ExcelReader struct {
 	cacheSize      int
 	lock           sync.Mutex
 	filePath       string
-    xlFile *xlsx.File
-    errMap map[string]error
-    errMapLock sync.Mutex
+	xlFile         *xlsx.File
+	errMap         map[string]error
+	errMapLock     sync.Mutex
 }
 
 func newExcelReader(pageStartIndex map[int]excelOffset, chanSize int, cacheSize int, filePath string, id string) (er *ExcelReader, err error) {
@@ -33,9 +33,9 @@ func newExcelReader(pageStartIndex map[int]excelOffset, chanSize int, cacheSize 
 	er.cacheSize = cacheSize
 	er.filePath = filePath
 
-    if er.xlFile, err = xlsx.OpenFile(er.filePath); err != nil {
-        return
-    }
+	if er.xlFile, err = xlsx.OpenFile(er.filePath); err != nil {
+		return
+	}
 	return
 
 }
@@ -44,7 +44,7 @@ func (er *ExcelReader) Process(task func(pageIndex int, rowIndex int, data []str
 
 	er.chanBuffer = make(chan *excelStatistics, er.chanSize)
 	er.chanCtrl = make(chan int, er.chanSize)
-    er.errMap = make(map[string]error)
+	er.errMap = make(map[string]error)
 
 	er.lock.Lock()
 	defer er.lock.Unlock()
@@ -63,13 +63,13 @@ func (er *ExcelReader) Process(task func(pageIndex int, rowIndex int, data []str
 			loop:
 				for {
 					if len(er.chanCtrl) < er.chanSize {
-                        //任意数字都可以，并不会处理这个数字。
+						//任意数字都可以，并不会处理这个数字。
 						er.chanCtrl <- 0
 						er.totalChainSize += 1
 						go er.innerProcess(k, i, endIndex, sheet.Rows, task)
 						break loop
 					} else {
-                        //携程已满，直接输出
+						//携程已满，直接输出
 						<-er.chanCtrl
 						s := <-er.chanBuffer
 						er.totalChainSize -= 1
@@ -109,16 +109,16 @@ func (er *ExcelReader) innerProcess(pageIndex, startIndex, endIndex int, rows []
 		}
 
 		if err := task(pageIndex, i, dataBuffer, er.processId); err != nil {
-            er.errMapLock.Lock()
-            er.errMap[fmt.Sprintf("%d_%d",pageIndex, i)] = err
-            er.errMapLock.Unlock()
-		}else{
-            statistics.SuccessCount += 1
-        }
+			er.errMapLock.Lock()
+			er.errMap[fmt.Sprintf("%d_%d", pageIndex, i)] = err
+			er.errMapLock.Unlock()
+		} else {
+			statistics.SuccessCount += 1
+		}
 	}
 
 }
 
-func (er *ExcelReader) GetLastErrorMap()map[string]error{
-    return er.errMap
+func (er *ExcelReader) GetLastErrorMap() map[string]error {
+	return er.errMap
 }
